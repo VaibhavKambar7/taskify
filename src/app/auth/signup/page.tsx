@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,10 +16,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { signup } from "./action";
 
 const SignupPage = () => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     name: "",
@@ -37,27 +38,43 @@ const SignupPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError("");
 
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
-      setIsLoading(false);
       return;
     }
 
+    setIsPending(true);
+
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      router.push("/");
+      const result = await signup({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (result.error) {
+        setError(result.error);
+      } else {
+        await signIn("credentials", {
+          email: formData.email,
+          password: formData.password,
+          redirect: false,
+        });
+        router.push("/");
+      }
     } catch (err) {
       if (err instanceof Error) {
-        setError(err.message || "Invalid email or password");
-      } else {
-        setError("Invalid email or password");
+        setError("Something went wrong. Please try again.");
       }
     } finally {
-      setIsLoading(false);
+      setIsPending(false);
     }
+  };
+
+  const handleGoogleSignIn = () => {
+    signIn("google", { callbackUrl: "/" });
   };
 
   return (
@@ -87,7 +104,7 @@ const SignupPage = () => {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                disabled={isLoading}
+                disabled={isPending}
               />
             </div>
             <div className="space-y-2">
@@ -100,7 +117,7 @@ const SignupPage = () => {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                disabled={isLoading}
+                disabled={isPending}
               />
             </div>
             <div className="space-y-2">
@@ -112,7 +129,7 @@ const SignupPage = () => {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                disabled={isLoading}
+                disabled={isPending}
               />
             </div>
             <div className="space-y-2">
@@ -124,11 +141,11 @@ const SignupPage = () => {
                 required
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                disabled={isLoading}
+                disabled={isPending}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Create account"}
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? "Creating account..." : "Create account"}
             </Button>
           </form>
         </CardContent>
@@ -143,14 +160,19 @@ const SignupPage = () => {
               </span>
             </div>
           </div>
-          <Button variant="outline" className="w-full" disabled={isLoading}>
+          <Button
+            variant="outline"
+            className="w-full"
+            disabled={isPending}
+            onClick={handleGoogleSignIn}
+          >
             Continue with Google
           </Button>
           <p className="text-center text-sm text-gray-600">
             Already have an account?{" "}
             <Link
-              href="/login"
-              className="font-medium text-primary hover:text-primary/90"
+              href="/auth/login"
+              className="font-medium text-primary hover:text-primary/90 hover:underline"
             >
               Log in
             </Link>

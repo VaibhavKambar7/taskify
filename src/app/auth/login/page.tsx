@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const LoginPage = () => {
@@ -39,17 +40,31 @@ const LoginPage = () => {
     setError("");
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      router.push("/dashboard");
+      const result = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        router.push("/");
+        toast.success("Logged in successfully !");
+
+        router.refresh();
+      }
     } catch (err) {
       if (err instanceof Error) {
-        setError(err.message || "Invalid email or password");
-      } else {
-        setError("Invalid email or password");
+        setError("Something went wrong. Please try again.");
       }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleSignIn = () => {
+    signIn("google", { callbackUrl: "/" });
   };
 
   return (
@@ -109,13 +124,18 @@ const LoginPage = () => {
               </span>
             </div>
           </div>
-          <Button variant="outline" className="w-full" disabled={isLoading}>
+          <Button
+            variant="outline"
+            className="w-full"
+            disabled={isLoading}
+            onClick={handleGoogleSignIn}
+          >
             Continue with Google
           </Button>
           <p className="text-center text-sm text-gray-600">
             Don&apos;t have an account?{" "}
             <Link
-              href="/signup"
+              href="/auth/signup"
               className="font-medium text-primary hover:text-primary/90"
             >
               Sign up

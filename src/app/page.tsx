@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,6 +9,7 @@ import { FaPlus, FaTimes } from "react-icons/fa";
 import { dummyTasks } from "@/lib/dummy";
 import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
+import Navbar from "@/components/Navbar";
 
 export interface Task {
   id: string;
@@ -51,15 +51,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#202124] text-gray-200">
-      <header className="bg-[#202124] shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-200">Taskify</h1>
-          <Avatar className="h-10 w-10">
-            <AvatarImage src="/assets/pfp.jpg" alt="User" />
-            <AvatarFallback>U</AvatarFallback>
-          </Avatar>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4">
