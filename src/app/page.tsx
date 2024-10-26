@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FaPlus, FaTimes } from "react-icons/fa";
-import { dummyTasks } from "@/lib/dummy";
 import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 import Navbar from "@/components/Navbar";
@@ -21,19 +20,33 @@ export interface Task {
 
 export default function Home() {
   const router = useRouter();
-  const [tasks, setTasks] = useState<Task[]>(dummyTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const response = await fetch("/api/getTask");
+        if (response.ok) {
+          const data = await response.json();
+          setTasks(
+            data.tasks.map((task: any) => ({
+              id: task.id,
+              title: task.title || "Untitled",
+              slug: task.slug,
+              content: task.description || "",
+              completed: task.completed || false,
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+    fetchTasks();
+  }, []);
 
   const handleAddTask = () => {
     const taskSlug = uuidv4();
-    // const task: Task = {
-    //   id: (tasks.length + 1).toString(),
-    //   title: "Untitled",
-    //   slug: taskSlug,
-    //   content: "",
-    //   completed: false,
-    // };
-
-    // setTasks([task, ...tasks]);
     router.push(`/task/${taskSlug}`);
   };
 

@@ -30,6 +30,7 @@ export const authOptions: NextAuthOptions = {
             credentials.password,
             user.hashedPassword
           );
+
           if (passwordMatch) {
             return user;
           } else {
@@ -44,26 +45,37 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge: 5 * 60 * 60,
+  },
   secret: process.env.NEXTAUTH_SECRET,
-  pages: { signIn: "/auth/login" },
+  pages: {
+    signIn: "/auth/login",
+  },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, trigger, session, user }) {
       if (user) {
-        token.id = user.id;
         token.email = user.email;
         token.name = user.name;
         token.image = user.image;
       }
+
+      if (trigger === "update" && session) {
+        token.name = session.user.name;
+        token.image = session.user.image;
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (token) {
-        session.user.id = token.id;
-        session.user.email = token.email;
-        session.user.name = token.name;
-        session.user.image = token.image;
-        session.expires = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+        session.user = {
+          ...session.user,
+          email: token.email,
+          name: token.name,
+          image: token.image,
+        };
       }
       return session;
     },

@@ -43,13 +43,12 @@ const LoginPage = () => {
       const result = await signIn("credentials", {
         email: formData.email,
         password: formData.password,
-        redirect: false,
+        redirect: true,
       });
 
       if (result?.error) {
         setError(result.error);
       } else {
-        router.push("/");
         toast.success("Logged in successfully !");
 
         router.refresh();

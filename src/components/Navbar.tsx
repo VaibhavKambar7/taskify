@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -10,10 +10,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "./ui/dropdown-menu";
+import { getToken } from "next-auth/jwt";
 
 const Navbar = () => {
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { data: session } = useSession();
 
   const handleProfileClick = () => {
     router.push("/profile");
@@ -33,7 +35,10 @@ const Navbar = () => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Avatar className="h-12 w-12 cursor-pointer hover:opacity-80 transition-opacity duration-200">
-                <AvatarImage src="/assets/pfp.jpg" alt="User" />
+                <AvatarImage
+                  src={session?.user.image || "/assets/fallback.jpeg"}
+                  alt="User"
+                />
                 <AvatarFallback>U</AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>

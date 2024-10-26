@@ -22,8 +22,6 @@ export default function CreateTask() {
         completed: false,
       };
 
-      console.log("New Task Created:", task);
-
       router.push("/");
     }
   };
