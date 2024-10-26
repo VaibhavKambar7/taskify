@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import React from "react";
 import SessionProvider from "./context/AuthProvider";
 import { authOptions } from "./api/auth/[...nextauth]/option";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -35,6 +36,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <SessionProvider session={session}>{children}</SessionProvider>
+        <Toaster />
       </body>
     </html>
   );

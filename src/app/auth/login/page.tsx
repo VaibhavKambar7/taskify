@@ -49,9 +49,8 @@ const LoginPage = () => {
       if (result?.error) {
         setError(result.error);
       } else {
-        toast.success("Logged in successfully !");
-
         router.refresh();
+        toast.success("Logged in successfully !");
       }
     } catch (err) {
       if (err instanceof Error) {
@@ -135,7 +134,7 @@ const LoginPage = () => {
             Don&apos;t have an account?{" "}
             <Link
               href="/auth/signup"
-              className="font-medium text-primary hover:text-primary/90"
+              className="font-medium text-primary hover:text-primary/90 hover:underline "
             >
               Sign up
             </Link>

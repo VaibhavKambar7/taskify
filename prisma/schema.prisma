@@ -14,12 +14,14 @@ datasource db {
 }
 
 model User {
-  id             String  @id @default(uuid()) @db.Uuid
+  id             String   @id @default(uuid()) @db.Uuid
   name           String?
-  email          String  @unique
+  email          String   @unique
   hashedPassword String
   image          String?
-  tasks          Task[]  @relation("UserTasks")
+  tasks          Task[]   @relation("UserTasks")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model Task {
