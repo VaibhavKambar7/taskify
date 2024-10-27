@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaRegStickyNote } from "react-icons/fa";
 import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 import Navbar from "@/components/Navbar";
@@ -79,6 +79,8 @@ export default function Home() {
           </div>
         ) : tasks.length === 0 ? (
           <div className="flex flex-col items-center mt-20 justify-center h-full">
+            <FaRegStickyNote className="text-6xl text-gray-500 mb-4" />
+
             <h2 className="text-2xl font-bold text-gray-600 mb-2">
               No Tasks Found
             </h2>
