@@ -3,13 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { FaPlus, FaRegStickyNote } from "react-icons/fa";
-import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 import Navbar from "@/components/Navbar";
 import axios from "axios";
-import { MdDelete } from "react-icons/md";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import TaskCard from "@/components/TaskCard";
@@ -32,7 +29,7 @@ export default function Home() {
         const response = await axios.get("/api/get-task");
         if (response.status === 200) {
           setTasks(
-            response.data.tasks.map((task: any) => ({
+            response.data.tasks.map((task: Task) => ({
               id: task.slug,
               title: task.title || "Untitled",
               slug: task.slug,

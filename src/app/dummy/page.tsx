@@ -1,15 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { FaPlus } from "react-icons/fa";
-import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 import Navbar from "@/components/Navbar";
 import axios from "axios";
-import { MdDelete } from "react-icons/md";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import TaskCard from "@/components/TaskCard";
@@ -25,7 +22,7 @@ export interface Task {
 export default function Home() {
   const router = useRouter();
   const [tasks, setTasks] = useState<Task[]>(dummyTasks);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading] = useState<boolean>(false);
 
   const handleAddTask = () => {
     const taskSlug = uuidv4();

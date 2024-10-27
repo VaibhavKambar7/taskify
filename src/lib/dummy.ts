@@ -25,9 +25,9 @@ export const dummyTasks: Task[] = [
   {
     id: "4",
     slug: "4e7f8d9a-8g9b-4f1b-bf3f-1a2d3e4f5a6e",
-    title: "Review and Edit Project Report",
+    title: "Watch a Movie",
     description:
-      "Go through the project report, making necessary edits and ensuring clarity and accuracy. Collaborate with team members for additional feedback.",
+      "Take some time to unwind and watch a David Fincher movie. His films are known for their intriguing plots and masterful storytelling, making for an engaging viewing experience.",
   },
   {
     id: "5",

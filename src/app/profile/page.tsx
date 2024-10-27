@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { updateProfile } from "./action";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
-export function ProfilePage() {
+export default function ProfilePage() {
   const { data: session, update } = useSession();
   const [name, setName] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
@@ -141,10 +142,13 @@ export function ProfilePage() {
         </div>
         {previewUrl && (
           <div className="mt-4 relative">
-            <img
+            <Image
               src={previewUrl}
               alt="Profile preview"
-              className="w-full h-auto rounded-lg shadow-sm"
+              layout="responsive"
+              width={500}
+              height={300}
+              className="rounded-lg shadow-sm"
             />
             <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-opacity duration-200 rounded-lg" />
           </div>
@@ -156,5 +160,3 @@ export function ProfilePage() {
     </div>
   );
 }
-
-export default ProfilePage;
