@@ -10,6 +10,9 @@ import { useSession } from "next-auth/react";
 import axios, { AxiosError } from "axios";
 import { Spinner } from "@/components/ui/spinner";
 import { PlusIcon, PencilIcon } from "lucide-react";
+import { FaWandMagicSparkles } from "react-icons/fa6";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
+import TaskTagsMultiSelect from "@/components/ui/tag-select";
 
 interface Task {
   id: string;
@@ -17,14 +20,16 @@ interface Task {
   description?: string | null;
   userId: string;
   slug: string;
+  tags: string[];
 }
 
 interface TaskForm {
   title: string;
   description: string;
+  tags: string[];
 }
 
-export default function Component({ params }: { params: { slug: string } }) {
+export default function TaskPage({ params }: { params: { slug: string } }) {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,8 +38,50 @@ export default function Component({ params }: { params: { slug: string } }) {
   const [task, setTask] = useState<TaskForm>({
     title: "",
     description: "",
+    tags: [],
   });
+  const [isPending, setIsPending] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [enhancedDescription, setEnhancedDescription] = useState("");
 
+  const handleEnhanceDescription = async () => {
+    if (!task.description.trim()) {
+      toast.error("Description is required for enhancement");
+      return;
+    }
+
+    setIsPending(true);
+
+    try {
+      const response = await axios.post("/api/enhance-description", {
+        description: task.description,
+      });
+
+      if (response.data.enhancedDescription) {
+        setEnhancedDescription(response.data.enhancedDescription);
+        setIsDialogOpen(true);
+      } else if (response.data.error) {
+        toast.error(response.data.error);
+      }
+    } catch (error) {
+      toast.error("Error enhancing description");
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  const handleConfirmEnhancement = (finalText: string) => {
+    setTask((prev) => ({
+      ...prev,
+      description: finalText,
+    }));
+    setIsDialogOpen(false);
+    toast.success("Description updated successfully");
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+  };
   useEffect(() => {
     const fetchTask = async () => {
       if (!params.slug) {
@@ -43,7 +90,7 @@ export default function Component({ params }: { params: { slug: string } }) {
       }
 
       try {
-        const response = await axios.get(`/api/getTask/${params.slug}`);
+        const response = await axios.get(`/api/get-task/${params.slug}`);
         const fetchedTasks = Array.isArray(response.data)
           ? response.data
           : [response.data];
@@ -53,6 +100,7 @@ export default function Component({ params }: { params: { slug: string } }) {
           setTask({
             title: fetchedTasks[0].title,
             description: fetchedTasks[0].description || "",
+            tags: fetchedTasks[0].tags || [],
           });
         }
       } catch (error) {
@@ -61,10 +109,11 @@ export default function Component({ params }: { params: { slug: string } }) {
           setTask({
             title: "",
             description: "",
+            tags: [],
           });
           setTasks([]);
         } else {
-          toast.error("Error: You must be logged in to manage tasks");
+          toast.error("You must be logged in to manage tasks");
         }
       } finally {
         setIsLoading(false);
@@ -79,32 +128,38 @@ export default function Component({ params }: { params: { slug: string } }) {
     return null;
   }
 
+  const handleTagsChange = (newTags: string[]) => {
+    setTask((prev) => ({
+      ...prev,
+      tags: newTags,
+    }));
+  };
   const handleSubmit = async () => {
     if (!session) {
-      toast.error("Error: You must be logged in to manage tasks");
+      toast.error("You must be logged in to manage tasks");
       return;
     }
 
     if (!task.title.trim()) {
-      toast.error("Error: Title is required");
+      toast.error("Title is required");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
+      const taskData = {
+        title: task.title.trim(),
+        description: task.description.trim() || null,
+        tags: task.tags,
+      };
+
       if (params.slug && tasks.length > 0) {
-        await axios.put(`/api/putTask/${params.slug}`, {
-          title: task.title.trim(),
-          description: task.description.trim() || null,
-        });
-        toast.success("Success: Task updated successfully");
+        await axios.put(`/api/edit-task/${params.slug}`, taskData);
+        toast.success("Task updated successfully");
       } else {
-        await axios.post("/api/newTask", {
-          title: task.title.trim(),
-          description: task.description.trim() || null,
-        });
-        toast.success("Success: Task created successfully");
+        await axios.post("/api/create-task", taskData);
+        toast.success("Task created successfully");
       }
 
       router.push("/");
@@ -121,7 +176,7 @@ export default function Component({ params }: { params: { slug: string } }) {
         return;
       }
 
-      toast.error("Error: Failed!");
+      toast.error("Failed!");
     } finally {
       setIsSubmitting(false);
     }
@@ -141,6 +196,12 @@ export default function Component({ params }: { params: { slug: string } }) {
         <h2 className="text-2xl font-bold mb-6 text-gray-800">
           {tasks.length > 0 ? "Edit Task" : "Create New Task"}
         </h2>
+        {/* <div className="mb-4 w-full relative">
+          <TaskTagsMultiSelect
+            selectedTags={task.tags}
+            onChange={handleTagsChange}
+          />
+        </div> */}
         {tasks.length > 1 && (
           <div className="mb-4 text-yellow-600 bg-yellow-100 p-3 rounded">
             Warning: Multiple tasks found with this slug. Editing the first
@@ -154,13 +215,27 @@ export default function Component({ params }: { params: { slug: string } }) {
           className="mb-4 bg-white border-gray-300 text-gray-800 placeholder-gray-400 h-10 text-lg"
           disabled={isSubmitting}
         />
-        <Textarea
-          value={task.description}
-          onChange={(e) => setTask({ ...task, description: e.target.value })}
-          placeholder="Description (optional)"
-          className="mb-6 bg-white border-gray-300 text-gray-800 placeholder-gray-400 h-40 text-md"
-          disabled={isSubmitting}
-        />
+        <div className="relative mb-6">
+          <Textarea
+            value={task.description}
+            onChange={(e) => setTask({ ...task, description: e.target.value })}
+            placeholder="Description (optional)"
+            className="bg-white border-gray-300 text-gray-800 placeholder-gray-400 h-40 text-md "
+            disabled={isSubmitting}
+          />
+          {isPending ? (
+            <Spinner
+              className="ml-2 absolute top-3 text-gray-500 right-6"
+              size={20}
+            />
+          ) : (
+            <FaWandMagicSparkles
+              onClick={handleEnhanceDescription}
+              className="absolute top-3  text-gray-500 right-6 cursor-pointer transition-transform duration-200 hover:scale-110 hover:text-blue-500"
+            />
+          )}
+        </div>
+
         <Button
           onClick={handleSubmit}
           className="bg-blue-500 hover:bg-blue-600 text-white h-10 w-full px-4 text-md flex items-center justify-center"
@@ -183,6 +258,13 @@ export default function Component({ params }: { params: { slug: string } }) {
           )}
         </Button>
       </div>
+      <ConfirmationDialog
+        isOpen={isDialogOpen}
+        onClose={handleCloseDialog}
+        originalText={task.description}
+        enhancedText={enhancedDescription}
+        onConfirm={handleConfirmEnhancement}
+      />
     </div>
   );
 }

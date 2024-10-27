@@ -11,38 +11,41 @@ import Navbar from "@/components/Navbar";
 import axios from "axios";
 import { MdDelete } from "react-icons/md";
 import { toast } from "sonner";
-import { FaRegStickyNote } from "react-icons/fa"; // Import an icon
+import { FaRegStickyNote } from "react-icons/fa";
+import { Spinner } from "@/components/ui/spinner";
 
 export interface Task {
   id: string;
   title: string;
   slug: string;
-  content: string;
-  completed: boolean;
+  description: string;
+  tags: string[];
 }
 
 export default function Home() {
   const router = useRouter();
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const response = await fetch("/api/getTask");
-        if (response.ok) {
-          const data = await response.json();
+        const response = await axios.get("/api/get-task");
+        if (response.status === 200) {
           setTasks(
-            data.tasks.map((task: any) => ({
-              id: task.id,
+            response.data.tasks.map((task: any) => ({
+              id: task.slug,
               title: task.title || "Untitled",
               slug: task.slug,
-              content: task.description || "",
-              completed: task.completed || false,
+              description: task.description || "",
+              tags: task.tags || [],
             }))
           );
         }
       } catch (error) {
         console.error("Error:", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchTasks();
@@ -57,7 +60,7 @@ export default function Home() {
     setTasks((prevTasks) => prevTasks.filter((task) => task.slug !== slug));
 
     try {
-      const response = await axios.delete(`/api/deleteTask/${slug}`);
+      const response = await axios.delete(`/api/delete-task/${slug}`);
       if (response.status !== 200) {
         throw new Error("Failed to delete task");
       }
@@ -72,7 +75,11 @@ export default function Home() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {tasks.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center h-full mt-20">
+            <Spinner className="w-full mt-20" size={40} />
+          </div>
+        ) : tasks.length === 0 ? (
           <div className="flex flex-col items-center mt-20 justify-center h-full">
             <FaRegStickyNote className="text-6xl text-gray-500 mb-4" />
             <h2 className="text-2xl font-bold text-gray-600 mb-2">
@@ -94,13 +101,7 @@ export default function Home() {
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center">
-                        <h3
-                          className={`text-lg font-semibold ${
-                            task.completed
-                              ? "line-through text-gray-400"
-                              : "text-gray-800"
-                          }`}
-                        >
+                        <h3 className={`text-lg font-semibold text-gray-800`}>
                           {task.title}
                         </h3>
                       </div>
@@ -118,13 +119,16 @@ export default function Home() {
                       </Button>
                     </div>
                     <p
-                      className={`text-sm ${
-                        task.completed ? "text-gray-500" : "text-gray-700"
-                      } whitespace-pre-wrap`}
+                      className={`text-sm text-gray-700 whitespace-pre-wrap max-h-24 overflow-hidden truncate`}
+                      style={{
+                        display: "-webkit-box",
+                        WebkitBoxOrient: "vertical",
+                        WebkitLineClamp: 5,
+                      }}
                     >
-                      {task.content.length > 300
-                        ? `${task.content.substring(0, 200)}...`
-                        : task.content}
+                      {task.description.length > 300
+                        ? `${task.description.substring(0, 200)}...`
+                        : task.description}
                     </p>
                   </CardContent>
                 </Card>

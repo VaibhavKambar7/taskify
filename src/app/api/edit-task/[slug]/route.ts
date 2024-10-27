@@ -1,32 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { z } from "zod";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]/option";
+import { authOptions } from "../../auth/[...nextauth]/option";
+import { z } from "zod";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
 const prisma = globalForPrisma.prisma ?? new PrismaClient();
-
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 const taskSchema = z.object({
   title: z.string().min(2, { message: "Title must be at least 2 characters." }),
   description: z.string().optional().nullable(),
+  tags: z.array(z.string()).default([]),
 });
 
-export async function POST(request: NextRequest) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { slug: string } }
+) {
   try {
-    // Get the user session
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get user ID from email
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       select: { id: true },
@@ -36,33 +37,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Validate the request body
-    const rawBody = await request.json();
-    const validatedData = taskSchema.parse(rawBody);
+    const body = await request.json();
+    const validatedData = taskSchema.parse(body);
 
-    // Create a URL-safe slug
-    const slug = `${validatedData.title
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
-
-    // Create the task with user ID
-    const newTask = await prisma.task.create({
-      data: {
-        title: validatedData.title,
-        description: validatedData.description || null,
-        slug,
+    const existingTask = await prisma.task.findFirst({
+      where: {
+        slug: params.slug,
         userId: user.id,
       },
     });
 
-    return NextResponse.json(newTask, { status: 201 });
-  } catch (error) {
-    console.error("Detailed error:", {
-      error,
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
+    if (!existingTask) {
+      return NextResponse.json(
+        { error: "Task not found or unauthorized" },
+        { status: 404 }
+      );
+    }
+
+    const updatedTask = await prisma.task.update({
+      where: {
+        slug: params.slug,
+      },
+      data: {
+        title: validatedData.title,
+        description: validatedData.description,
+        tags: validatedData.tags,
+        updatedAt: new Date(),
+      },
     });
+
+    return NextResponse.json(updatedTask);
+  } catch (error) {
+    console.error("Error updating task:", error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

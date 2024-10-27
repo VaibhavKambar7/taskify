@@ -29,6 +29,7 @@ model Task {
   title       String
   slug        String   @unique
   description String?
+  tags        String[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   userId      String   @db.Uuid

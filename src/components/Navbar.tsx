@@ -10,7 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "./ui/dropdown-menu";
-import Image from "next/image"; // Ensure you import Image
+import Image from "next/image";
 
 const Navbar = () => {
   const router = useRouter();
@@ -41,20 +41,18 @@ const Navbar = () => {
           <Image
             src="/assets/logo.png"
             alt="Logo"
-            width={25} // Reduced logo size
+            width={25}
             height={25}
             className="mr-2"
           />
           <h1 className="text-2xl font-bold text-gray-800 font-sans">
-            {" "}
-            {/* Reduced text size */}
             Taskify
           </h1>
         </div>
         <div className="flex items-center relative">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Avatar className="h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity duration-200">
+              <Avatar className="h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity duration-200 border-2 border-yellow-400">
                 {" "}
                 {/* Reduced avatar size */}
                 <AvatarImage
