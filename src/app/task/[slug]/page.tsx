@@ -12,7 +12,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { PlusIcon, PencilIcon } from "lucide-react";
 import { FaWandMagicSparkles } from "react-icons/fa6";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
-import TaskTagsMultiSelect from "@/components/ui/tag-select";
 
 interface Task {
   id: string;
@@ -20,13 +19,11 @@ interface Task {
   description?: string | null;
   userId: string;
   slug: string;
-  tags: string[];
 }
 
 interface TaskForm {
   title: string;
   description: string;
-  tags: string[];
 }
 
 export default function TaskPage({ params }: { params: { slug: string } }) {
@@ -38,7 +35,6 @@ export default function TaskPage({ params }: { params: { slug: string } }) {
   const [task, setTask] = useState<TaskForm>({
     title: "",
     description: "",
-    tags: [],
   });
   const [isPending, setIsPending] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -100,7 +96,6 @@ export default function TaskPage({ params }: { params: { slug: string } }) {
           setTask({
             title: fetchedTasks[0].title,
             description: fetchedTasks[0].description || "",
-            tags: fetchedTasks[0].tags || [],
           });
         }
       } catch (error) {
@@ -109,7 +104,6 @@ export default function TaskPage({ params }: { params: { slug: string } }) {
           setTask({
             title: "",
             description: "",
-            tags: [],
           });
           setTasks([]);
         } else {
@@ -128,12 +122,6 @@ export default function TaskPage({ params }: { params: { slug: string } }) {
     return null;
   }
 
-  const handleTagsChange = (newTags: string[]) => {
-    setTask((prev) => ({
-      ...prev,
-      tags: newTags,
-    }));
-  };
   const handleSubmit = async () => {
     if (!session) {
       toast.error("You must be logged in to manage tasks");
@@ -151,7 +139,6 @@ export default function TaskPage({ params }: { params: { slug: string } }) {
       const taskData = {
         title: task.title.trim(),
         description: task.description.trim() || null,
-        tags: task.tags,
       };
 
       if (params.slug && tasks.length > 0) {
@@ -196,12 +183,7 @@ export default function TaskPage({ params }: { params: { slug: string } }) {
         <h2 className="text-2xl font-bold mb-6 text-gray-800">
           {tasks.length > 0 ? "Edit Task" : "Create New Task"}
         </h2>
-        {/* <div className="mb-4 w-full relative">
-          <TaskTagsMultiSelect
-            selectedTags={task.tags}
-            onChange={handleTagsChange}
-          />
-        </div> */}
+
         {tasks.length > 1 && (
           <div className="mb-4 text-yellow-600 bg-yellow-100 p-3 rounded">
             Warning: Multiple tasks found with this slug. Editing the first

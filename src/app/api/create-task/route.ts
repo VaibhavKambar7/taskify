@@ -15,7 +15,6 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 const taskSchema = z.object({
   title: z.string().min(2, { message: "Title must be at least 2 characters." }),
   description: z.string().optional().nullable(),
-  tags: z.array(z.string()).default([]),
 });
 
 export async function POST(request: NextRequest) {
@@ -47,7 +46,6 @@ export async function POST(request: NextRequest) {
       data: {
         title: validatedData.title,
         description: validatedData.description || null,
-        tags: validatedData.tags,
         slug,
         userId: user.id,
       },

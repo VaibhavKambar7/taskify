@@ -11,15 +11,14 @@ import Navbar from "@/components/Navbar";
 import axios from "axios";
 import { MdDelete } from "react-icons/md";
 import { toast } from "sonner";
-import { FaRegStickyNote } from "react-icons/fa";
 import { Spinner } from "@/components/ui/spinner";
+import TaskCard from "@/components/TaskCard";
 
 export interface Task {
   id: string;
   title: string;
   slug: string;
   description: string;
-  tags: string[];
 }
 
 export default function Home() {
@@ -38,7 +37,6 @@ export default function Home() {
               title: task.title || "Untitled",
               slug: task.slug,
               description: task.description || "",
-              tags: task.tags || [],
             }))
           );
         }
@@ -81,7 +79,6 @@ export default function Home() {
           </div>
         ) : tasks.length === 0 ? (
           <div className="flex flex-col items-center mt-20 justify-center h-full">
-            <FaRegStickyNote className="text-6xl text-gray-500 mb-4" />
             <h2 className="text-2xl font-bold text-gray-600 mb-2">
               No Tasks Found
             </h2>
@@ -93,46 +90,7 @@ export default function Home() {
         ) : (
           <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4">
             {tasks.map((task) => (
-              <Link key={task.id} href={`/task/${task.slug}`}>
-                <Card
-                  className="bg-white border-gray-300 mb-4 break-inside-avoid"
-                  style={{ maxHeight: "300px" }}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center">
-                        <h3 className={`text-lg font-semibold text-gray-800`}>
-                          {task.title}
-                        </h3>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          deleteTask(task.slug);
-                        }}
-                        className="h-6 w-6 text-gray-500 hover:text-gray-800"
-                      >
-                        <MdDelete />
-                      </Button>
-                    </div>
-                    <p
-                      className={`text-sm text-gray-700 whitespace-pre-wrap max-h-24 overflow-hidden truncate`}
-                      style={{
-                        display: "-webkit-box",
-                        WebkitBoxOrient: "vertical",
-                        WebkitLineClamp: 5,
-                      }}
-                    >
-                      {task.description.length > 300
-                        ? `${task.description.substring(0, 200)}...`
-                        : task.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
+              <TaskCard key={task.id} task={task} onDelete={deleteTask} />
             ))}
           </div>
         )}
